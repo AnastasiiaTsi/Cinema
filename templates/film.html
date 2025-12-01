@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ film.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Заголовок фільму -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <img src="{{ film.poster_url or '/static/images/posters/default.jpg' }}" 
+                 class="img-fluid rounded-3 shadow film-poster-main" 
+                 alt="{{ film.title }}"
+                 onerror="this.src='/static/images/posters/default.jpg'">
+        </div>
+        <div class="col-md-8">
+            <h1 class="text-gold mb-3">{{ film.title }}</h1>
+            <div class="mb-4">
+                <span class="badge bg-success me-2 fs-6 p-2">{{ film.genre }}</span>
+                <span class="badge bg-primary me-2 fs-6 p-2">{{ film.duration }} хвилин</span>
+            </div>
+            <p class="text-light fs-5 film-description-main">{{ film.description }}</p>
+        </div>
+    </div>
+
+    <!-- Сеанси -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-gold mb-4 border-bottom pb-2">🎬 Доступні сеанси</h2>
+            
+            {% if film.sessions %}
+                <div class="row">
+                    {% for session in film.sessions %}
+                    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                        <div class="card session-card h-100">
+                            <div class="card-body text-center">
+                                <!-- Час -->
+                                <h4 class="text-gold mb-3">{{ session.session_time[:5] }}</h4>
+                                
+                                <!-- Дата -->
+                                <p class="text-silver mb-2">
+                                    <i class="fas fa-calendar me-2"></i>{{ session.session_date }}
+                                </p>
+                                
+                                <!-- Зал -->
+                                <p class="text-light mb-1">
+                                    <strong>{{ session.hall_name }}</strong>
+                                </p>
+                                <p class="text-silver small mb-3">
+                                    {{ session.hall_type }}
+                                </p>
+                                
+                                <!-- Ціна -->
+                                <p class="text-gold fs-4 mb-3">
+                                    <strong>{{ "%.0f"|format(session.price) }} грн</strong>
+                                </p>
+                                
+                                <!-- Кнопка -->
+                                <a href="{{ url_for('booking_seats', session_id=session.id) }}" 
+                                   class="btn btn-primary w-100 py-2">
+                                    <i class="fas fa-armchair me-2"></i>Обрати місця
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-warning text-center py-4">
+                    <h4 class="text-gold mb-3">📅 Наразі немає доступних сеансів</h4>
+                    <p class="mb-0 text-silver">Будь ласка, перевірте розклад пізніше</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Кнопка назад -->
+    <div class="text-center mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Повернутись до афіші
+        </a>
+    </div>
+</div>
+
+<style>
+.film-poster-main {
+    height: 400px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.film-description-main {
+    color: var(--text-light) !important;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+.session-card {
+    background: var(--card-bg);
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.session-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-gold);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.2);
+}
+</style>
+{% endblock %}

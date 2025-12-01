@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block title %}Афіша кінотеатру{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <i class="fas fa-film me-2"></i>CINEMA PREMIUM
+        </h1>
+        <p class="hero-subtitle">Найкращі фільми у найкращій якості</p>
+    </div>
+</section>
+
+<div class="container">
+    <div class="films-grid">
+        {% for film in films %}
+        <div class="card film-card">
+            <div class="position-relative">
+                <img src="{{ film.poster_url or '/static/images/posters/default.jpg' }}" 
+                     class="film-poster" 
+                     alt="{{ film.title }}"
+                     onerror="this.src='/static/images/posters/default.jpg'">
+                <div class="film-overlay"></div>
+            </div>
+            <div class="film-info">
+                <h5 class="card-title">{{ film.title }}</h5>
+                <div class="film-meta">
+                    <span class="badge bg-success">{{ film.genre }}</span>
+                    <span class="badge bg-primary">{{ film.duration }} хв</span>
+                </div>
+                <p class="film-description">{{ film.description }}</p>
+                <div class="film-action">
+                    <a href="{{ url_for('film_details', film_id=film.id) }}" class="btn btn-primary">
+                        Детальніше та бронювання
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not films %}
+    <div class="alert alert-info text-center mt-4">
+        <h4 class="text-gold">🎭 Наразі немає сеансів</h4>
+        <p class="mb-0 text-light">Спробуйте пізніше або зателефонуйте нам для отримання інформації</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

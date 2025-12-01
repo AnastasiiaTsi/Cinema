@@ -1,0 +1,315 @@
+{% extends "layout.html" %}
+
+{% block title %}Бронювання місць - {{ session.film_title }}{% endblock %}
+
+{% block content %}
+<!-- Приховані елементи для передачі даних в JS -->
+<div id="seat-price" data-price="{{ session.price }}" style="display: none;"></div>
+<div id="session-id" data-id="{{ session.id }}" style="display: none;"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Ліва частина - схема залу -->
+        <div class="col-lg-8 col-md-7">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-gold mb-0">Оберіть місця: {{ session.film_title }}</h2>
+            </div>
+
+            <!-- Інформація про сеанс -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title text-gold">{{ session.film_title }}</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2 text-silver">
+                                <i class="fas fa-calendar me-2"></i><strong>Дата:</strong> {{ session.session_date }}
+                            </p>
+                            <p class="mb-2 text-silver">
+                                <i class="fas fa-clock me-2"></i><strong>Час:</strong> {{ session.session_time }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2 text-silver">
+                                <i class="fas fa-theater-masks me-2"></i><strong>Зал:</strong> {{ session.hall_name }} ({{ session.hall_type }})
+                            </p>
+                            <p class="mb-2 text-silver">
+                                <i class="fas fa-tag me-2"></i><strong>Ціна:</strong> {{ session.price }} грн
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Схема залу -->
+            <div class="cinema-hall-container mb-4">
+                <h4 class="text-gold mb-3">💺 Схема залу</h4>
+                <div class="cinema-hall">
+                    <!-- Екран -->
+                    <div class="screen-container text-center mb-4">
+                        <div class="screen mx-auto">
+                            ЕКРАН
+                        </div>
+                    </div>
+                    
+                    <!-- Місця -->
+                    <div id="seats-container" class="seats-grid">
+                        {% set rows = {} %}
+                        {% for seat in seats %}
+                            {% set row_num = seat.row_number %}
+                            {% if row_num not in rows %}
+                                {% set _ = rows.update({row_num: []}) %}
+                            {% endif %}
+                            {% set _ = rows[row_num].append(seat) %}
+                        {% endfor %}
+                        
+                        {% for row_num in rows.keys()|sort %}
+                            <div class="seat-row mb-3" id="row-{{ row_num }}">
+                                <div class="row-label text-center mb-2">
+                                    <small class="text-muted">Ряд {{ row_num }}</small>
+                                </div>
+                                <div class="d-flex justify-content-center flex-wrap">
+                                    {% for seat in rows[row_num] %}
+                                        <div class="seat-item mx-1 mb-2">
+                                            <input type="checkbox" 
+                                                   class="btn-check seat-checkbox" 
+                                                   id="seat-{{ seat.id }}" 
+                                                   autocomplete="off"
+                                                   data-seat-id="{{ seat.id }}"
+                                                   data-row="{{ seat.row_number }}"
+                                                   data-seat="{{ seat.seat_number }}"
+                                                   {% if not seat.is_available %}disabled{% endif %}>
+                                            <label class="btn seat-label {% if seat.is_available %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}" 
+                                                   for="seat-{{ seat.id }}"
+                                                   data-seat-id="{{ seat.id }}"
+                                                   title="Ряд {{ seat.row_number }}, Місце {{ seat.seat_number }}">
+                                                {{ seat.seat_number }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Легенда -->
+            <div class="legend-card card">
+                <div class="card-body">
+                    <h6 class="text-silver mb-3">📋 Легенда</h6>
+                    <div class="d-flex gap-4 flex-wrap">
+                        <div class="d-flex align-items-center">
+                            <span class="btn btn-outline-primary seat-legend me-2">1</span>
+                            <span class="text-silver">Вільні</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="btn btn-outline-secondary seat-legend me-2">1</span>
+                            <span class="text-silver">Зайняті</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="btn btn-warning seat-legend me-2">1</span>
+                            <span class="text-silver">Обрані</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Права частина - форма бронювання -->
+        <div class="col-lg-4 col-md-5">
+            <div class="booking-sidebar">
+                <div class="card sticky-sidebar">
+                    <div class="card-body">
+                        <h5 class="card-title text-gold mb-4">🎫 Ваше бронювання</h5>
+                        
+                        <!-- Обрані місця -->
+                        <div id="selected-seats" class="mb-4">
+                            <p class="text-muted text-center">Оберіть місця зліва</p>
+                        </div>
+                        
+                        <!-- Підсумок -->
+                        <div id="booking-summary" class="d-none">
+                            <div class="summary-item mb-3">
+                                <p class="mb-1 text-silver"><strong>Кількість місць:</strong></p>
+                                <p class="mb-0 text-light fs-5"><span id="seats-count">0</span> шт</p>
+                            </div>
+                            <div class="summary-item mb-4">
+                                <p class="mb-1 text-silver"><strong>Загальна сума:</strong></p>
+                                <p class="mb-0 text-light fs-4"><span id="total-price">0</span> грн</p>
+                            </div>
+                            
+                            <div id="max-seats-warning" class="alert alert-warning d-none mt-2">
+                                <small><i class="fas fa-exclamation-triangle me-1"></i>Максимум 10 місць за бронювання</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Форма бронювання -->
+                        <form id="booking-form" class="d-none">
+                            <div class="mb-3">
+                                <label for="customer_name" class="form-label text-silver">
+                                    <i class="fas fa-user me-2"></i>Ваше ім'я *
+                                </label>
+                                <input type="text" class="form-control" id="customer_name" required
+                                       placeholder="Введіть ваше ім'я" minlength="2">
+                                <div class="invalid-feedback">Будь ласка, введіть ваше ім'я (мінімум 2 символи)</div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="customer_email" class="form-label text-silver">
+                                    <i class="fas fa-envelope me-2"></i>Email *
+                                </label>
+                                <input type="email" class="form-control" id="customer_email" required
+                                       placeholder="your@email.com">
+                                <div class="invalid-feedback">Будь ласка, введіть коректний email</div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 py-2" id="submit-btn">
+                                <i class="fas fa-ticket-alt me-2"></i>Забронювати квитки
+                            </button>
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">Натискаючи "Забронювати", ви погоджуєтесь з умовами бронювання</small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка назад -->
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('film_details', film_id=session.film_id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Назад до фільму
+        </a>
+    </div>
+</div>
+
+<!-- Модальне вікно підтвердження -->
+<div class="modal fade" id="confirmationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-gold">Підтвердження бронювання</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-light">Ви впевнені, що хочете забронювати обрані місця?</p>
+                <div id="modal-booking-details"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-success" id="confirm-booking">Так, забронювати</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+/* Специфічні стилі для сторінки бронювання */
+.cinema-hall-container {
+    background: linear-gradient(135deg, var(--card-bg) 0%, #353535 100%);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 1px solid #3a3a3a;
+}
+
+.screen-container {
+    padding: 0 2rem;
+}
+
+.screen {
+    background: linear-gradient(135deg, #4a4a4a 0%, #2d2d2d 100%);
+    border: 3px solid var(--accent-gold);
+    color: var(--accent-gold);
+    font-weight: bold;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+}
+
+.seat-row {
+    margin-bottom: 1.5rem;
+}
+
+.row-label {
+    margin-bottom: 0.5rem;
+}
+
+.seat-item {
+    margin: 0 0.3rem 0.5rem;
+}
+
+.seat-label {
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border: 2px solid;
+    font-size: 0.9rem;
+}
+
+.seat-legend {
+    width: 35px;
+    height: 35px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.sticky-sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+.booking-sidebar {
+    position: relative;
+}
+
+.summary-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+/* Адаптивність */
+@media (max-width: 768px) {
+    .cinema-hall-container {
+        padding: 1rem;
+    }
+    
+    .screen {
+        width: 90%;
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .seat-label {
+        width: 40px;
+        height: 40px;
+        font-size: 0.8rem;
+    }
+    
+    .sticky-sidebar {
+        position: relative;
+        top: 0;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/booking.js') }}"></script>
+{% endblock %}
