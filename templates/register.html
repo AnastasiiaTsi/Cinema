@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block title %}Реєстрація{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h4 class="mb-0">Реєстрація в кінотеатрі</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+                    
+                    <form method="POST" action="{{ url_for('register') }}">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="form-text">Використовується для входу та отримання квитків</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Ім'я користувача *</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                            <div class="form-text">Мінімум 3 символи</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Пароль *</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="form-text">Мінімум 6 символів</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label">Повне ім'я</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Іван Іваненко">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="+380XXXXXXXXX">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Зареєструватися</button>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <p>Вже маєте акаунт? <a href="{{ url_for('login') }}">Увійти</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

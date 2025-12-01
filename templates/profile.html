@@ -1,0 +1,242 @@
+{% extends "layout.html" %}
+
+{% block title %}Мій кабінет{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <img src="{{ user.avatar_url or '/static/img/default-avatar.png' }}" 
+                         class="rounded-circle mb-3" 
+                         width="120" 
+                         height="120"
+                         alt="Аватар">
+                    <h5>{{ user.full_name or user.username }}</h5>
+                    <p class="text-muted">{{ user.email }}</p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="#profile-info" class="btn btn-outline-primary active" data-bs-toggle="tab">Профіль</a>
+                        <a href="#my-bookings" class="btn btn-outline-primary" data-bs-toggle="tab">Мої бронювання</a>
+                        <a href="#notifications" class="btn btn-outline-primary" data-bs-toggle="tab">
+                            Сповіщення
+                            {% if notifications %}
+                            <span class="badge bg-danger ms-1">{{ notifications|length }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger mt-3">Вийти</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Профіль -->
+                <div class="tab-pane fade show active" id="profile-info">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Мій профіль</h5>
+                            <button class="btn btn-sm btn-primary" onclick="enableEdit()">Редагувати</button>
+                        </div>
+                        <div class="card-body">
+                            <form id="profile-form" onsubmit="updateProfile(event)">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Ім'я користувача</label>
+                                        <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" value="{{ user.email }}" readonly>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Повне ім'я</label>
+                                    <input type="text" class="form-control" id="full_name" 
+                                           value="{{ user.full_name or '' }}" disabled>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Телефон</label>
+                                    <input type="tel" class="form-control" id="phone" 
+                                           value="{{ user.phone or '' }}" disabled>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Дата реєстрації</label>
+                                    <input type="text" class="form-control" value="{{ user.created_at }}" readonly>
+                                </div>
+                                
+                                <div class="d-none" id="edit-buttons">
+                                    <button type="submit" class="btn btn-success">Зберегти</button>
+                                    <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Скасувати</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Бронювання -->
+                <div class="tab-pane fade" id="my-bookings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Мої бронювання</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if bookings %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Фільм</th>
+                                            <th>Дата та час</th>
+                                            <th>Зал</th>
+                                            <th>Місця</th>
+                                            <th>Код</th>
+                                            <th>Статус</th>
+                                            <th>Дії</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for booking in bookings %}
+                                        <tr>
+                                            <td>{{ booking.film_title }}</td>
+                                            <td>{{ booking.session_date }}<br>{{ booking.session_time }}</td>
+                                            <td>{{ booking.hall_name }}</td>
+                                            <td>{{ booking.seats }}</td>
+                                            <td><code>{{ booking.booking_code }}</code></td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if booking.status == 'active' else 'warning' if booking.status == 'cancelled' else 'secondary' }}">
+                                                    {{ booking.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="/booking/{{ booking.booking_code }}" class="btn btn-sm btn-outline-primary">
+                                                    Деталі
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">У вас ще немає бронювань</p>
+                                <a href="{{ url_for('index') }}" class="btn btn-primary">Перейти до афіші</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Сповіщення -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Сповіщення</h5>
+                            {% if notifications %}
+                            <button class="btn btn-sm btn-outline-secondary" onclick="markAllAsRead()">
+                                Позначити все як прочитане
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% if notifications %}
+                            <div class="list-group">
+                                {% for notification in notifications %}
+                                <div class="list-group-item {% if not notification.is_read %}bg-light{% endif %}">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ notification.title }}</h6>
+                                        <small class="text-muted">{{ notification.created_at }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ notification.message }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-{{ 'bell' if notification.type == 'system' else 'ticket-alt' if notification.type == 'booking' else 'tag' }} me-1"></i>
+                                        {{ notification.type }}
+                                    </small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Немає непрочитаних сповіщень</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript для кабінету
+function enableEdit() {
+    document.getElementById('full_name').disabled = false;
+    document.getElementById('phone').disabled = false;
+    document.getElementById('edit-buttons').classList.remove('d-none');
+}
+
+function cancelEdit() {
+    document.getElementById('full_name').disabled = true;
+    document.getElementById('phone').disabled = true;
+    document.getElementById('edit-buttons').classList.add('d-none');
+}
+
+function updateProfile(event) {
+    event.preventDefault();
+    
+    const fullName = document.getElementById('full_name').value;
+    const phone = document.getElementById('phone').value;
+    
+    fetch('/profile/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'full_name': fullName,
+            'phone': phone
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Профіль оновлено!');
+            cancelEdit();
+            location.reload();
+        } else {
+            alert('Помилка: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Помилка мережі');
+    });
+}
+
+function markAllAsRead() {
+    // Тут можна додати логіку для позначення всіх сповіщень
+    alert('Функція в розробці');
+}
+
+// Автоматично переключаємо таби з URL
+document.addEventListener('DOMContentLoaded', function() {
+    const hash = window.location.hash;
+    if (hash) {
+        const tab = document.querySelector(`a[href="${hash}"]`);
+        if (tab) {
+            tab.click();
+        }
+    }
+});
+</script>
+{% endblock %}

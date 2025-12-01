@@ -22,9 +22,33 @@
             <a class="navbar-brand" href="{{ url_for('index') }}">
                 <i class="fas fa-film me-2"></i>CINEMA Premium
             </a>
+            <!-- Додаємо в navbar (після navbar-brand) -->
+            <ul class="navbar-nav ms-auto">
+                {% if session.user_id %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user me-1"></i> {{ session.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ url_for('profile') }}">Мій кабінет</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Вийти</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                     <a class="nav-link" href="{{ url_for('login') }}">
+                         <i class="fas fa-sign-in-alt me-1"></i> Увійти
+                     </a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-primary ms-2" href="{{ url_for('register') }}">Реєстрація</a>
+                </li>
+                {% endif %}
+            </ul>
         </div>
     </nav>
-
+    
     <!-- Контент -->
     <main>
         {% block content %}{% endblock %}

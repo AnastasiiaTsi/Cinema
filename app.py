@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import re
 import logging
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
 from database import (
     get_films_with_sessions, 
     get_film_by_id, 
@@ -11,7 +12,15 @@ from database import (
     get_booking_by_code,
     cancel_booking,
     init_database,
-    get_unique_sessions_for_film 
+    get_unique_sessions_for_film,
+    create_user,
+    get_user_by_email,
+    get_user_by_id,
+    update_user_profile,
+    get_user_bookings,
+    add_notification,
+    get_user_notifications,
+    mark_notification_read
 )
 
 # Налаштування логування
@@ -202,6 +211,143 @@ def api_session_seats(session_id):
             'success': False,
             'message': 'Помилка отримання даних місць'
         }), 500
+
+# === КОРИСТУВАЧСЬКИЙ КАБІНЕТ ===
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Реєстрація користувача"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        full_name = request.form.get('full_name')
+        phone = request.form.get('phone')
+        
+        # Валідація
+        if not validate_email(email):
+            return render_template('register.html', error='Некоректний email')
+        
+        if not username or len(username) < 3:
+            return render_template('register.html', error='Ім\'я користувача повинно містити мінімум 3 символи')
+        
+        if not password or len(password) < 6:
+            return render_template('register.html', error='Пароль повинен містити мінімум 6 символів')
+        
+        try:
+            password_hash = generate_password_hash(password)
+            user_id = create_user(email, username, password_hash, full_name, phone)
+            
+            # Автоматичний вхід після реєстрації
+            session['user_id'] = user_id
+            session['username'] = username
+            session['email'] = email
+            
+            # Додати привітальне сповіщення
+            add_notification(user_id, 'system', 'Ласкаво просимо!', 'Дякуємо за реєстрацію в нашому кінотеатрі!')
+            
+            return redirect(url_for('profile'))
+        except Exception as e:
+            return render_template('register.html', error=str(e))
+    
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Вхід користувача"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        remember = request.form.get('remember')
+        
+        user = get_user_by_email(email)
+        if user and check_password_hash(user['password_hash'], password):
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['email'] = user['email']
+            
+            if remember:
+                session.permanent = True
+            else:
+                session.permanent = False
+            
+            return redirect(url_for('profile'))
+        else:
+            return render_template('login.html', error='Невірний email або пароль')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    """Вихід користувача"""
+    session.clear()
+    return redirect(url_for('index'))
+
+@app.route('/profile')
+def profile():
+    """Профіль користувача"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user = get_user_by_id(session['user_id'])
+    if not user:
+        session.clear()
+        return redirect(url_for('login'))
+    
+    bookings = get_user_bookings(user['id'])
+    notifications = get_user_notifications(user['id'], unread_only=True)
+    
+    return render_template('profile.html', 
+                         user=user, 
+                         bookings=bookings,
+                         notifications=notifications)
+
+@app.route('/profile/update', methods=['POST'])
+def update_profile():
+    """Оновити профіль"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Необхідно увійти в систему'}), 401
+    
+    full_name = request.form.get('full_name')
+    phone = request.form.get('phone')
+    
+    success = update_user_profile(session['user_id'], full_name, phone)
+    
+    if success:
+        return jsonify({'success': True, 'message': 'Профіль оновлено'})
+    else:
+        return jsonify({'success': False, 'message': 'Помилка оновлення профілю'})
+
+@app.route('/api/notifications')
+def api_get_notifications():
+    """API для отримання сповіщень"""
+    if 'user_id' not in session:
+        return jsonify([])
+    
+    notifications = get_user_notifications(session['user_id'])
+    return jsonify(notifications)
+
+@app.route('/api/notifications/mark-read/<int:notification_id>', methods=['POST'])
+def api_mark_notification_as_read(notification_id):
+    """API для позначення сповіщення як прочитаного"""
+    if 'user_id' not in session:
+        return jsonify({'success': False}), 401
+    
+    success = mark_notification_read(notification_id)
+    return jsonify({'success': success})
+
+# Додати middleware для перевірки авторизації
+@app.before_request
+def check_auth():
+    # Список публічних маршрутів
+    public_routes = ['index', 'film_details', 'booking_seats', 
+                    'booking_details', 'login', 'register', 'static',
+                    'api_films', 'api_session_seats', 'book_tickets',
+                    'api_cancel_booking', 'api_get_notifications', 
+                    'api_mark_notification_as_read']
+    
+    if request.endpoint not in public_routes and 'user_id' not in session:
+        return redirect(url_for('login'))
 
 @app.errorhandler(404)
 def not_found_error(error):

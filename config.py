@@ -16,3 +16,11 @@ class Config:
     # Папка для статичних файлів
     STATIC_FOLDER = 'static'
     UPLOAD_FOLDER = os.path.join(STATIC_FOLDER, 'images', 'posters')
+
+    # TMDB API налаштування
+    TMDB_API_KEY = os.environ.get('TMDB_API_KEY', 'ваш_api_ключ_tmdb')
+    TMDB_BASE_URL = 'https://api.themoviedb.org/3'
+    TMDB_IMAGE_URL = 'https://image.tmdb.org/t/p/original'
+    
+    # Мова (змініть на потрібну)
+    TMDB_LANGUAGE = 'uk-UA'  
