@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block title %}Реєстрація - CINEMA Premium{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="auth-container">
+                <div class="auth-header">
+                    <h1 class="auth-title">Створити акаунт</h1>
+                    <p class="auth-subtitle">Приєднуйтесь до CINEMA Premium</p>
+                </div>
+                
+                {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="{{ url_for('register') }}">
+                    <div class="mb-4">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               placeholder="ваш@email.com" required>
+                        <div class="form-text">Використовується для входу та отримання квитків</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="username" class="form-label">Ім'я користувача</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               placeholder="оберіть ім'я" required>
+                        <div class="form-text">Мінімум 3 символи</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="введіть пароль" required>
+                        <div class="form-text">Мінімум 6 символів</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="full_name" class="form-label">Повне ім'я</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" 
+                                   placeholder="Іван Іваненко">
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label for="phone" class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   placeholder="+380XXXXXXXXX">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn-auth">
+                            <i class="fas fa-user-plus me-2"></i>Зареєструватися
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="auth-footer">
+                    <p class="mb-2">Вже маєте акаунт?</p>
+                    <a href="{{ url_for('login') }}" class="auth-link">
+                        <i class="fas fa-sign-in-alt me-1"></i>Увійти в кабінет
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

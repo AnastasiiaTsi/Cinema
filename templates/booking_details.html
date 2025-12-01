@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+
+{% block title %}Деталі бронювання - {{ booking.booking_code }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card booking-confirmation mb-4">
+            <div class="card-body text-center text-light">
+                <h1 class="card-title">✅ Бронювання підтверджено!</h1>
+                <h3 class="card-subtitle mb-3 text-gold">Код бронювання: <strong>{{ booking.booking_code }}</strong></h3>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h4 class="card-title text-gold">Деталі бронювання</h4>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5 class="text-silver mb-3">📽️ Інформація про фільм</h5>
+                        <p class="text-light"><strong class="text-silver">Фільм:</strong> {{ booking.film_title }}</p>
+                        <p class="text-light"><strong class="text-silver">Дата:</strong> {{ booking.session_date }}</p>
+                        <p class="text-light"><strong class="text-silver">Час:</strong> {{ booking.session_time }}</p>
+                        <p class="text-light"><strong class="text-silver">Зал:</strong> {{ booking.hall_name }}</p>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5 class="text-silver mb-3">👤 Ваші дані</h5>
+                        <p class="text-light"><strong class="text-silver">Ім'я:</strong> {{ booking.customer_name }}</p>
+                        <p class="text-light"><strong class="text-silver">Email:</strong> {{ booking.customer_email }}</p>
+                        <p class="text-light"><strong class="text-silver">Статус:</strong> 
+                            <span class="badge {% if booking.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ 'Активне' if booking.status == 'active' else 'Скасоване' }}
+                            </span>
+                        </p>
+                        <p class="text-light"><strong class="text-silver">Заброньовано:</strong> {{ booking.created_at }}</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h5 class="text-silver mb-3">💺 Заброньовані місця</h5>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        {% set seats_list = booking.seats.split(',') %}
+                        {% for seat in seats_list %}
+                            <span class="btn btn-outline-primary">{{ seat }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="text-gold">ℹ️ Важлива інформація</h5>
+                <ul class="list-unstyled mt-3">
+                    <li class="text-light mb-2">✅ Збережіть код бронювання - він знадобиться для отримання квитків</li>
+                    <li class="text-light mb-2">✅ Приходьте за 20 хвилин до початку сеансу</li>
+                    <li class="text-light mb-2">✅ Майте при собі документ, що посвідчує особу</li>
+                    <li class="text-light mb-2">✅ Деталі бронювання будуть надіслані на вашу email адресу</li>
+                </ul>
+            </div>
+        </div>
+
+        {% if booking.status == 'active' %}
+        <div class="card border-warning">
+            <div class="card-body">
+                <h5 class="text-warning">⚠️ Скасування бронювання</h5>
+                <p class="text-light">Якщо ви хочете скасувати бронювання, натисніть кнопку нижче.</p>
+                <button class="btn btn-outline-warning" id="cancel-booking-btn">
+                    Скасувати бронювання
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="mt-4 text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-primary me-3">На головну</a>
+            <a href="{{ url_for('film_details', film_id=booking.film_id) if booking.film_id else url_for('index') }}" 
+               class="btn btn-outline-primary">Переглянути інші сеанси</a>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно скасування -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-gold">Скасування бронювання</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-light">Ви впевнені, що хочете скасувати бронювання <strong class="text-gold">{{ booking.booking_code }}</strong>?</p>
+                <p class="text-danger">Цю дію неможливо скасувати!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрити</button>
+                <button type="button" class="btn btn-danger" id="confirm-cancel">Так, скасувати</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cancelBtn = document.getElementById('cancel-booking-btn');
+    const confirmCancelBtn = document.getElementById('confirm-cancel');
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            const cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
+            cancelModal.show();
+        });
+    }
+    
+    if (confirmCancelBtn) {
+        confirmCancelBtn.addEventListener('click', async function() {
+            try {
+                const response = await fetch('/api/cancel-booking/{{ booking.booking_code }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Бронювання успішно скасовано!');
+                    location.reload();
+                } else {
+                    alert('Помилка: ' + result.message);
+                }
+            } catch (error) {
+                alert('Помилка скасування: ' + error.message);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
