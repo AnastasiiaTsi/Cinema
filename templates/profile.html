@@ -1,97 +1,193 @@
 {% extends "layout.html" %}
 
-{% block title %}Мій кабінет{% endblock %}
+{% block title %}Мій кабінет - CINEMA Premium{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 mb-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <img src="{{ user.avatar_url or '/static/img/default-avatar.png' }}" 
-                         class="rounded-circle mb-3" 
-                         width="120" 
-                         height="120"
-                         alt="Аватар">
-                    <h5>{{ user.full_name or user.username }}</h5>
-                    <p class="text-muted">{{ user.email }}</p>
+        <div class="col-md-4 col-lg-3 mb-4">
+            <div class="card profile-sidebar">
+                <div class="card-body text-center p-4">
+                    <div class="position-relative mb-3">
+                        {% if user.avatar_url %}
+                        <img src="{{ user.avatar_url }}" 
+                             class="profile-avatar" 
+                             alt="Аватар">
+                        {% else %}
+                        <div class="sidebar-avatar-placeholder">
+                            <i class="fas fa-user-circle"></i> 
+                        </div>
+                        {% endif %}
+
+                        {% if user.is_online %}
+                        <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle">
+                            <span class="visually-hidden">Online</span>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-1">{{ user.full_name or user.username }}</h5>
+                    <p class="text-muted mb-3">{{ user.email }}</p>
                     
-                    <div class="d-grid gap-2">
-                        <a href="#profile-info" class="btn btn-outline-primary active" data-bs-toggle="tab">Профіль</a>
-                        <a href="#my-bookings" class="btn btn-outline-primary" data-bs-toggle="tab">Мої бронювання</a>
-                        <a href="#notifications" class="btn btn-outline-primary" data-bs-toggle="tab">
-                            Сповіщення
+                    {% if user.is_admin %}
+                    <span class="badge bg-warning text-dark mb-3">
+                        <i class="fas fa-crown me-1"></i>Адміністратор
+                    </span>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2" role="tablist">
+                        <a href="#profile-info" class="btn btn-outline-primary active" data-bs-toggle="tab" role="tab" aria-controls="profile-info" aria-selected="true">
+                            <i class="fas fa-user me-2"></i>Профіль
+                        </a>
+                        <a href="#my-bookings" class="btn btn-outline-primary" data-bs-toggle="tab" role="tab" aria-controls="my-bookings" aria-selected="false">
+                            <i class="fas fa-ticket-alt me-2"></i>Мої бронювання
+                            {% if bookings %}
+                            <span class="badge bg-secondary ms-1">{{ bookings|length }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="#notifications" class="btn btn-outline-primary" data-bs-toggle="tab" role="tab" aria-controls="notifications" aria-selected="false">
+                            <i class="fas fa-bell me-2"></i>Сповіщення
                             {% if notifications %}
                             <span class="badge bg-danger ms-1">{{ notifications|length }}</span>
                             {% endif %}
                         </a>
-                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger mt-3">Вийти</a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger mt-3">
+                            <i class="fas fa-sign-out-alt me-2"></i>Вийти
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Main Content -->
-        <div class="col-md-9">
+        <div class="col-md-8 col-lg-9">
             <div class="tab-content">
-                <!-- Профіль -->
-                <div class="tab-pane fade show active" id="profile-info">
-                    <div class="card">
+                <div class="tab-pane fade show active" id="profile-info" role="tabpanel" aria-labelledby="profile-info-tab">
+                    <div class="card profile-info">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Мій профіль</h5>
-                            <button class="btn btn-sm btn-primary" onclick="enableEdit()">Редагувати</button>
+                            <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i>Мій профіль</h4>
+                            <button class="btn btn-primary" id="edit-profile-btn">
+                                <i class="fas fa-edit me-1"></i>Редагувати
+                            </button>
                         </div>
                         <div class="card-body">
-                            <form id="profile-form" onsubmit="updateProfile(event)">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Ім'я користувача</label>
-                                        <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                            <form id="profile-form">
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <div class="info-label">
+                                            <i class="fas fa-id-card me-1"></i>Ім'я користувача
+                                        </div>
+                                        <div class="display-value info-view-element">
+                                            <i class="fas fa-user me-2"></i><span class="view-username">{{ user.username }}</span>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" class="form-control" value="{{ user.email }}" readonly>
+                                    <div class="col-md-6 mb-4">
+                                        <div class="info-label">
+                                            <i class="fas fa-envelope me-1"></i>Email
+                                        </div>
+                                        <div class="display-value info-view-element">
+                                            <i class="fas fa-at me-2"></i><span class="view-email">{{ user.email }}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <label class="form-label">Повне ім'я</label>
-                                    <input type="text" class="form-control" id="full_name" 
-                                           value="{{ user.full_name or '' }}" disabled>
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="info-label">
+                                            <i class="fas fa-user me-1"></i>Повне ім'я
+                                        </div>
+                                        {% if not user.full_name %}
+                                        <span class="badge bg-warning text-dark ms-2 warning-badge">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Не вказано
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="display-value info-view-element {% if not user.full_name %}no-data{% endif %}">
+                                        <span class="edit-full-name-view">
+                                            <i class="fas fa-user-circle me-2"></i>
+                                            <span class="full-name-text">{{ user.full_name or 'Не вказано' }}</span>
+                                        </span>
+                                    </div>
+                                    <small class="text-muted mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Ваше повне ім'я відображається у бронюваннях
+                                    </small>
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <label class="form-label">Телефон</label>
-                                    <input type="tel" class="form-control" id="phone" 
-                                           value="{{ user.phone or '' }}" disabled>
+                                <div class="mb-4">
+                                    <div class="info-label">
+                                        <i class="fas fa-phone me-1"></i>Телефон
+                                    </div>
+                                    <div class="display-value info-view-element {% if not user.phone %}no-data{% endif %}">
+                                        {% if user.phone %}
+                                        <a href="tel:{{ user.phone }}" class="edit-phone-view">
+                                            <i class="fas fa-mobile-alt me-2"></i><span class="phone-text">{{ user.phone }}</span>
+                                        </a>
+                                        {% else %}
+                                        <span class="edit-phone-view">
+                                            <i class="fas fa-mobile-alt me-2"></i><span class="phone-text">Не вказано</span>
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Для зв'язку щодо бронювань
+                                    </small>
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <label class="form-label">Дата реєстрації</label>
-                                    <input type="text" class="form-control" value="{{ user.created_at }}" readonly>
+                                <div class="mb-4">
+                                    <div class="info-label">
+                                        <i class="fas fa-calendar-alt me-1"></i>Дата реєстрації
+                                    </div>
+                                    <div class="display-value info-view-element">
+                                        <i class="fas fa-clock me-2"></i>{{ user.created_at }}
+                                    </div>
                                 </div>
                                 
-                                <div class="d-none" id="edit-buttons">
-                                    <button type="submit" class="btn btn-success">Зберегти</button>
-                                    <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Скасувати</button>
+                                <div class="d-none" id="edit-mode">
+                                    <hr class="my-4 border-gold">
+                                    <h5 class="text-gold mb-3">Редагування даних</h5>
+
+                                    <div class="mb-4">
+                                        <label for="edit_full_name" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Повне ім'я
+                                        </label>
+                                        <input type="text" class="form-control" id="edit_full_name" 
+                                               value="{{ user.full_name or '' }}"
+                                               placeholder="Введіть ваше повне ім'я">
+                                        <div class="form-text text-muted">Введіть ваше повне ім'я для відображення у бронюваннях</div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="edit_phone" class="form-label">
+                                            <i class="fas fa-phone me-1"></i>Телефон
+                                        </label>
+                                        <input type="tel" class="form-control" id="edit_phone" 
+                                               value="{{ user.phone or '' }}" 
+                                               placeholder="+380 (XX) XXX-XX-XX">
+                                        <div class="form-text text-muted">Введіть ваш номер телефону для зв'язку</div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-success" id="save-profile-btn">
+                                            <i class="fas fa-save me-1"></i>Зберегти зміни
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" id="cancel-edit-btn">
+                                            <i class="fas fa-times me-1"></i>Скасувати
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Бронювання -->
-                <div class="tab-pane fade" id="my-bookings">
+                <div class="tab-pane fade" id="my-bookings" role="tabpanel" aria-labelledby="my-bookings-tab">
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="mb-0">Мої бронювання</h5>
+                            <h4 class="mb-0"><i class="fas fa-ticket-alt me-2"></i>Мої бронювання</h4>
                         </div>
                         <div class="card-body">
                             {% if bookings %}
                             <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
+                                <table class="table table-dark table-striped table-hover align-middle">
+                                    <thead class="table-dark">
                                         <tr>
                                             <th>Фільм</th>
                                             <th>Дата та час</th>
@@ -105,19 +201,33 @@
                                     <tbody>
                                         {% for booking in bookings %}
                                         <tr>
-                                            <td>{{ booking.film_title }}</td>
-                                            <td>{{ booking.session_date }}<br>{{ booking.session_time }}</td>
-                                            <td>{{ booking.hall_name }}</td>
-                                            <td>{{ booking.seats }}</td>
-                                            <td><code>{{ booking.booking_code }}</code></td>
                                             <td>
-                                                <span class="badge bg-{{ 'success' if booking.status == 'active' else 'warning' if booking.status == 'cancelled' else 'secondary' }}">
-                                                    {{ booking.status }}
-                                                </span>
+                                                <strong>{{ booking.film_title }}</strong>
                                             </td>
                                             <td>
-                                                <a href="/booking/{{ booking.booking_code }}" class="btn btn-sm btn-outline-primary">
-                                                    Деталі
+                                                {{ booking.session_date }}<br>
+                                                <small class="text-muted">{{ booking.session_time }}</small>
+                                            </td>
+                                            <td>{{ booking.hall_name }}</td>
+                                            <td>
+                                                <span class="badge bg-info">{{ booking.seats }}</span>
+                                            </td>
+                                            <td>
+                                                <code class="text-gold bg-dark p-1 rounded">{{ booking.booking_code }}</code>
+                                            </td>
+                                            <td>
+                                                {% if booking.status == 'active' %}
+                                                <span class="badge bg-success">Активне</span>
+                                                {% elif booking.status == 'cancelled' %}
+                                                <span class="badge bg-warning text-dark">Скасовано</span>
+                                                {% else %}
+                                                <span class="badge bg-secondary">{{ booking.status }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="/booking/{{ booking.booking_code }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye me-1"></i>Деталі
                                                 </a>
                                             </td>
                                         </tr>
@@ -126,48 +236,60 @@
                                 </table>
                             </div>
                             {% else %}
-                            <div class="text-center py-4">
-                                <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">У вас ще немає бронювань</p>
-                                <a href="{{ url_for('index') }}" class="btn btn-primary">Перейти до афіші</a>
+                            <div class="text-center py-5">
+                                <i class="fas fa-ticket-alt fa-4x text-muted mb-4"></i>
+                                <h5 class="text-muted mb-3">У вас ще немає бронювань</h5>
+                                <p class="text-muted mb-4">Оберіть фільм з афіши та забронюйте місця</p>
+                                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                                    <i class="fas fa-film me-2"></i>Перейти до афіши
+                                </a>
                             </div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
                 
-                <!-- Сповіщення -->
-                <div class="tab-pane fade" id="notifications">
+                <div class="tab-pane fade" id="notifications" role="tabpanel" aria-labelledby="notifications-tab">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Сповіщення</h5>
+                            <h4 class="mb-0"><i class="fas fa-bell me-2"></i>Сповіщення</h4>
                             {% if notifications %}
-                            <button class="btn btn-sm btn-outline-secondary" onclick="markAllAsRead()">
-                                Позначити все як прочитане
+                            <button class="btn btn-outline-secondary btn-sm" id="mark-all-read-btn">
+                                <i class="fas fa-check-double me-1"></i>Позначити все як прочитане
                             </button>
                             {% endif %}
                         </div>
                         <div class="card-body">
                             {% if notifications %}
-                            <div class="list-group">
+                            <div class="list-group" id="notifications-list">
                                 {% for notification in notifications %}
-                                <div class="list-group-item {% if not notification.is_read %}bg-light{% endif %}">
+                                <div class="list-group-item list-group-item-action list-group-item-dark {% if not notification.is_read %}bg-opacity-75{% endif %}" 
+                                     id="notification-{{ notification.id }}">
                                     <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">{{ notification.title }}</h6>
-                                        <small class="text-muted">{{ notification.created_at }}</small>
+                                        <h6 class="mb-1 text-gold">{{ notification.title }}</h6>
+                                        <small class="text-muted">{{ notification.created_at[:16] }}</small>
                                     </div>
-                                    <p class="mb-1">{{ notification.message }}</p>
-                                    <small class="text-muted">
-                                        <i class="fas fa-{{ 'bell' if notification.type == 'system' else 'ticket-alt' if notification.type == 'booking' else 'tag' }} me-1"></i>
-                                        {{ notification.type }}
-                                    </small>
+                                    <p class="mb-2">{{ notification.message }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-{{ 'bell' if notification.type == 'system' else 'ticket-alt' if notification.type == 'booking' else 'tag' }} me-1"></i>
+                                            {{ notification.type }}
+                                        </small>
+                                        {% if not notification.is_read %}
+                                        <button class="btn btn-sm btn-outline-success mark-read-btn" 
+                                                data-notification-id="{{ notification.id }}">
+                                            <i class="fas fa-check me-1"></i>Прочитано
+                                        </button>
+                                        {% endif %}
+                                    </div>
                                 </div>
                                 {% endfor %}
                             </div>
                             {% else %}
-                            <div class="text-center py-4">
-                                <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Немає непрочитаних сповіщень</p>
+                            <div class="text-center py-5">
+                                <i class="fas fa-bell-slash fa-4x text-muted mb-4"></i>
+                                <h5 class="text-muted mb-3">Немає сповіщень</h5>
+                                <p class="text-muted">Тут з'являться ваші сповіщення</p>
                             </div>
                             {% endif %}
                         </div>
@@ -179,64 +301,227 @@
 </div>
 
 <script>
-// JavaScript для кабінету
+document.addEventListener('DOMContentLoaded', function() {
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const saveProfileBtn = document.getElementById('save-profile-btn');
+    const editMode = document.getElementById('edit-mode');
+    // Оновлено: використовуємо клас для всіх елементів перегляду
+    const viewElements = document.querySelectorAll('.info-view-element'); 
+    
+    if (editProfileBtn) {
+        editProfileBtn.addEventListener('click', enableEdit);
+    }
+    
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', cancelEdit);
+    }
+    
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', updateProfile);
+    }
+    
+    const markAllReadBtn = document.getElementById('mark-all-read-btn');
+    const markReadBtns = document.querySelectorAll('.mark-read-btn');
+    
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', markAllAsRead);
+    }
+    
+    markReadBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const notificationId = this.getAttribute('data-notification-id');
+            markAsRead(notificationId, this);
+        });
+    });
+    
+    // Ініціалізація вкладок на основі хешу
+    const hash = window.location.hash;
+    if (hash) {
+        const tab = document.querySelector(`a[href="${hash}"]`);
+        if (tab) {
+            new bootstrap.Tab(tab).show();
+        }
+    }
+});
+
 function enableEdit() {
-    document.getElementById('full_name').disabled = false;
-    document.getElementById('phone').disabled = false;
-    document.getElementById('edit-buttons').classList.remove('d-none');
+    const editMode = document.getElementById('edit-mode');
+    const viewElements = document.querySelectorAll('.info-view-element');
+    
+    viewElements.forEach(el => el.style.display = 'none');
+    editMode.classList.remove('d-none');
+    
+    // Отримуємо значення з елементів перегляду для заповнення полів редагування
+    const fullNameElement = document.querySelector('.full-name-text');
+    const fullNameValue = fullNameElement.textContent.trim() === 'Не вказано' ? '' : fullNameElement.textContent.trim();
+    document.getElementById('edit_full_name').value = fullNameValue;
+    
+    const phoneElement = document.querySelector('.phone-text');
+    const phoneValue = phoneElement.textContent.trim() === 'Не вказано' ? '' : phoneElement.textContent.trim();
+    document.getElementById('edit_phone').value = phoneValue;
 }
 
 function cancelEdit() {
-    document.getElementById('full_name').disabled = true;
-    document.getElementById('phone').disabled = true;
-    document.getElementById('edit-buttons').classList.add('d-none');
+    const editMode = document.getElementById('edit-mode');
+    const viewElements = document.querySelectorAll('.info-view-element');
+    
+    editMode.classList.add('d-none');
+    viewElements.forEach(el => el.style.display = 'flex'); // display-value має flex
 }
 
-function updateProfile(event) {
-    event.preventDefault();
+function updateProfile() {
+    const fullName = document.getElementById('edit_full_name').value.trim();
+    const phone = document.getElementById('edit_phone').value.trim();
     
-    const fullName = document.getElementById('full_name').value;
-    const phone = document.getElementById('phone').value;
+    if (!fullName) {
+        showAlert('Будь ласка, введіть ваше повне ім\'я', 'error');
+        return;
+    }
     
+    if (phone && !/^\+?\d[\d\s\-\(\)]+$/.test(phone)) {
+        showAlert('Будь ласка, введіть коректний номер телефону', 'error');
+        return;
+    }
+    
+    // Імітація запиту до сервера (потрібно підключити до реального бекенду)
     fetch('/profile/update', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
         },
-        body: new URLSearchParams({
+        body: JSON.stringify({
             'full_name': fullName,
             'phone': phone
         })
     })
     .then(response => response.json())
     .then(data => {
+        // Припускаємо, що бекенд повернув {success: true}
         if (data.success) {
-            alert('Профіль оновлено!');
+            
+            // 1. Оновлюємо відображення повного імені
+            const fullNameDiv = document.querySelector('.mb-4:nth-child(2) .display-value');
+            const fullNameText = document.querySelector('.full-name-text');
+            const warningBadge = document.querySelector('.warning-badge');
+            
+            if (fullNameText) {
+                fullNameText.textContent = fullName;
+                fullNameDiv.classList.remove('no-data');
+            }
+            if (warningBadge) {
+                warningBadge.remove();
+            }
+            
+            // 2. Оновлюємо відображення телефону
+            const phoneDiv = document.querySelector('.mb-4:nth-child(3) .display-value');
+            const phoneLink = document.querySelector('.edit-phone-view');
+            const phoneText = document.querySelector('.phone-text');
+            
+            if (phoneText) {
+                phoneText.textContent = phone || 'Не вказано';
+                if (phone) {
+                    phoneDiv.classList.remove('no-data');
+                    // Оновлюємо href тільки для дійсного посилання
+                    if (phoneLink.tagName === 'A') {
+                        phoneLink.setAttribute('href', `tel:${phone}`);
+                    }
+                } else {
+                    phoneDiv.classList.add('no-data');
+                    if (phoneLink.tagName === 'A') {
+                         phoneLink.removeAttribute('href');
+                    }
+                }
+            }
+
+            // 3. Оновлюємо ім'я в сайдбарі
+            const sidebarName = document.querySelector('.profile-sidebar h5');
+            if (sidebarName) {
+                sidebarName.textContent = fullName;
+            }
+            
+            // 4. Повертаємось до режиму перегляду
             cancelEdit();
-            location.reload();
+            
+            showAlert('Профіль успішно оновлено!', 'success');
         } else {
-            alert('Помилка: ' + data.message);
+            showAlert('Помилка: ' + data.message, 'error');
         }
     })
     .catch(error => {
-        alert('Помилка мережі');
+        showAlert('Помилка мережі: Не вдалося з\'єднатися з сервером', 'error');
+    });
+}
+
+function markAsRead(notificationId, buttonElement) {
+    fetch('/api/notifications/mark-read/' + notificationId, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            buttonElement.remove();
+            
+            const notificationItem = document.getElementById('notification-' + notificationId);
+            if (notificationItem) {
+                // Видаляємо клас, що підсвічує непрочитане
+                notificationItem.classList.remove('bg-opacity-75'); 
+            }
+            
+            const badge = document.querySelector('a[href="#notifications"] .badge');
+            if (badge) {
+                const count = parseInt(badge.textContent) - 1;
+                if (count > 0) {
+                    badge.textContent = count;
+                } else {
+                    badge.remove();
+                }
+            }
+        }
     });
 }
 
 function markAllAsRead() {
-    // Тут можна додати логіку для позначення всіх сповіщень
-    alert('Функція в розробці');
+    if (confirm('Позначити всі сповіщення як прочитані?')) {
+        fetch('/api/notifications/mark-all-read', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelectorAll('.mark-read-btn').forEach(btn => btn.remove());
+                document.querySelectorAll('.bg-opacity-75').forEach(el => el.classList.remove('bg-opacity-75'));
+                
+                const badge = document.querySelector('a[href="#notifications"] .badge');
+                if (badge) {
+                    badge.remove();
+                }
+                
+                showAlert('Усі сповіщення позначено як прочитані', 'success');
+            }
+        });
+    }
 }
 
-// Автоматично переключаємо таби з URL
-document.addEventListener('DOMContentLoaded', function() {
-    const hash = window.location.hash;
-    if (hash) {
-        const tab = document.querySelector(`a[href="${hash}"]`);
-        if (tab) {
-            tab.click();
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.style.minWidth = '300px';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
         }
-    }
-});
+    }, 5000);
+}
 </script>
 {% endblock %}

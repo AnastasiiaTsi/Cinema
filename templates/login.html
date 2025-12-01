@@ -1,42 +1,54 @@
 {% extends "layout.html" %}
 
-{% block title %}Вхід{% endblock %}
+{% block title %}Вхід - CINEMA Premium{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header text-center">
-                    <h4 class="mb-0">Вхід в кабінет</h4>
+        <div class="col-lg-5">
+            <div class="auth-container">
+                <div class="auth-header">
+                    <h1 class="auth-title">Вхід в кабінет</h1>
+                    <p class="auth-subtitle">Введіть ваші дані для входу</p>
                 </div>
-                <div class="card-body">
-                    {% if error %}
-                    <div class="alert alert-danger">{{ error }}</div>
-                    {% endif %}
-                    
-                    <form method="POST" action="{{ url_for('login') }}">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Пароль</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                            <label class="form-check-label" for="remember">Запам'ятати мене</label>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100">Увійти</button>
-                    </form>
-                    
-                    <div class="text-center mt-3">
-                        <p>Ще не зареєстровані? <a href="{{ url_for('register') }}">Створити акаунт</a></p>
+                
+                {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="mb-4">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               placeholder="ваш@email.com" required>
                     </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="введіть пароль" required>
+                    </div>
+                    
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">Запам'ятати мене</label>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn-auth">
+                            <i class="fas fa-sign-in-alt me-2"></i>Увійти
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="auth-footer">
+                    <p class="mb-2">Ще не зареєстровані?</p>
+                    <a href="{{ url_for('register') }}" class="auth-link">
+                        <i class="fas fa-user-plus me-1"></i>Створити акаунт
+                    </a>
                 </div>
             </div>
         </div>

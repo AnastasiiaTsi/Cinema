@@ -465,3 +465,322 @@ footer.bg-dark {
 .text-silver {
     color: var(--accent-silver) !important;
 }
+
+/*форма реєстрації*/
+.auth-container {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: var(--card-bg);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-title {
+    color: var(--accent-gold);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+.form-label {
+    color: var(--accent-silver);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #3a3a3a;
+    color: var(--text-light);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-gold);
+    color: var(--text-light);
+    box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+}
+
+.form-text {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.btn-auth {
+    background: linear-gradient(135deg, var(--accent-gold), #b8941f);
+    border: none;
+    color: var(--primary-dark);
+    font-weight: 600;
+    padding: 0.75rem;
+    border-radius: 10px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.btn-auth:hover {
+    background: linear-gradient(135deg, #b8941f, var(--accent-gold));
+    transform: translateY(-2px);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #3a3a3a;
+}
+
+.auth-link {
+    color: var(--accent-gold);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-link:hover {
+    color: var(--accent-silver);
+    text-decoration: underline;
+}
+
+/* футер */
+.site-footer {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #000 100%);
+    border-top: 2px solid var(--accent-gold);
+    padding: 2rem 0;
+    margin-top: 4rem;
+    color: var(--text-muted);
+}
+
+.footer-content {
+    text-align: center;
+}
+
+.footer-links {
+    margin: 1rem 0;
+}
+
+.footer-link {
+    color: var(--accent-silver);
+    text-decoration: none;
+    margin: 0 1rem;
+    font-size: 0.9rem;
+}
+
+.footer-link:hover {
+    color: var(--accent-gold);
+}
+
+.footer-copyright {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+}
+
+/* кабінет */
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-gold);
+    object-fit: cover;
+}
+
+.profile-info {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 2rem;
+}
+
+.info-label {
+    color: var(--accent-silver);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+/* ========== АДАПТИВНІСТЬ ========== */
+@media (max-width: 768px) {
+    .auth-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .auth-title {
+        font-size: 1.5rem;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+/* ========== ПРОФІЛЬ КОРИСТУВАЧА ========== */
+.profile-sidebar {
+    background: var(--card-bg);
+    border: 1px solid #3a3a3a;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.profile-sidebar .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-gold);
+    object-fit: cover;
+    margin: 0 auto 1rem;
+}
+
+.profile-info {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 2rem;
+}
+
+.profile-info .info-label {
+    color: var(--accent-silver);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    opacity: 0.9;
+}
+
+.profile-info .info-value {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* Стилі для заповнених полів як посилань (як на першому фото) */
+.profile-info .info-value a {
+    color: var(--accent-gold);
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.profile-info .info-value a:hover {
+    color: var(--text-light);
+    text-decoration: underline;
+    transform: translateX(5px);
+}
+
+/* Стилі для іконок біля значень */
+.profile-info .info-value i {
+    color: var(--accent-gold);
+    width: 20px;
+    text-align: center;
+}
+
+/* Заголовок профілю */
+.profile-info .card-header {
+    background: rgba(37, 37, 37, 0.8);
+    border-bottom: 2px solid var(--accent-gold);
+    padding: 1.5rem;
+}
+
+/* Редагування профілю */
+#edit-mode .form-label {
+    color: var(--accent-gold);
+}
+
+#edit-mode .form-control {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #3a3a3a;
+    color: var(--text-light);
+}
+
+#edit-mode .form-control:focus {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+}
+
+/* Кнопки в профілі */
+.profile-info .info-value {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-info .btn-primary {
+    background: linear-gradient(135deg, var(--accent-gold), #b8941f);
+    border: none;
+}
+
+.profile-info .btn-primary:hover {
+    background: linear-gradient(135deg, #b8941f, var(--accent-gold));
+}
+
+.profile-info .info-value a {
+    color: var(--accent-gold);
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.profile-info .display-value {
+    background: var(--primary-light);
+    border: 2px solid #3a3a3a;
+    color: var(--text-light); 
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    min-height: calc(0.75rem + 0.75rem + 1.6em + 4px);
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 1rem; 
+    line-height: 1.5;
+}
+
+.profile-info .display-value.no-data {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.profile-info .info-value i,
+.profile-info .display-value i {
+    color: var(--accent-gold);
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-light);
+    color: var(--accent-silver);
+    font-size: 3rem;
+    margin: 0 auto 1rem;
+    object-fit: cover;
+}
