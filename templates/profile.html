@@ -10,9 +10,9 @@
             <div class="card profile-sidebar">
                 <div class="card-body text-center p-4">
                     <div class="position-relative mb-3">
-                        <img src="{{ user.avatar_url or '/static/img/default-avatar.png' }}" 
-                             class="profile-avatar" 
-                             alt="Аватар">
+                        <div class="profile-avatar-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
                         {% if user.is_online %}
                         <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle">
                             <span class="visually-hidden">Online</span>
@@ -28,22 +28,31 @@
                     </span>
                     {% endif %}
                     
-                    <div class="d-grid gap-2">
-                        <a href="#profile-info" class="btn btn-outline-primary active" data-bs-toggle="tab">
+                    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                        <button class="nav-link active text-start mb-2" id="v-pills-profile-tab" data-bs-toggle="pill" 
+                                data-bs-target="#v-pills-profile" type="button" role="tab" aria-controls="v-pills-profile" 
+                                aria-selected="true">
                             <i class="fas fa-user me-2"></i>Профіль
-                        </a>
-                        <a href="#my-bookings" class="btn btn-outline-primary" data-bs-toggle="tab">
+                        </button>
+                        
+                        <button class="nav-link text-start mb-2" id="v-pills-bookings-tab" data-bs-toggle="pill" 
+                                data-bs-target="#v-pills-bookings" type="button" role="tab" aria-controls="v-pills-bookings" 
+                                aria-selected="false">
                             <i class="fas fa-ticket-alt me-2"></i>Мої бронювання
-                            {% if bookings %}
-                            <span class="badge bg-secondary ms-1">{{ bookings|length }}</span>
+                            {% if bookings and bookings|length > 0 %}
+                            <span class="badge bg-secondary float-end">{{ bookings|length }}</span>
                             {% endif %}
-                        </a>
-                        <a href="#notifications" class="btn btn-outline-primary" data-bs-toggle="tab">
+                        </button>
+                        
+                        <button class="nav-link text-start mb-2" id="v-pills-notifications-tab" data-bs-toggle="pill" 
+                                data-bs-target="#v-pills-notifications" type="button" role="tab" aria-controls="v-pills-notifications" 
+                                aria-selected="false">
                             <i class="fas fa-bell me-2"></i>Сповіщення
-                            {% if notifications %}
-                            <span class="badge bg-danger ms-1">{{ notifications|length }}</span>
+                            {% if notifications and notifications|length > 0 %}
+                            <span class="badge bg-danger float-end">{{ notifications|length }}</span>
                             {% endif %}
-                        </a>
+                        </button>
+                        
                         <a href="{{ url_for('logout') }}" class="btn btn-outline-danger mt-3">
                             <i class="fas fa-sign-out-alt me-2"></i>Вийти
                         </a>
@@ -54,9 +63,10 @@
         
         <!-- Main Content -->
         <div class="col-md-8 col-lg-9">
-            <div class="tab-content">
+            <div class="tab-content" id="v-pills-tabContent">
                 <!-- Профіль -->
-                <div class="tab-pane fade show active" id="profile-info">
+                <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" 
+                     aria-labelledby="v-pills-profile-tab">
                     <div class="card profile-info">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i>Мій профіль</h4>
@@ -178,13 +188,14 @@
                 </div>
                 
                 <!-- Бронювання -->
-                <div class="tab-pane fade" id="my-bookings">
+                <div class="tab-pane fade" id="v-pills-bookings" role="tabpanel" 
+                     aria-labelledby="v-pills-bookings-tab">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="mb-0">Мої бронювання</h4>
+                            <h4 class="mb-0"><i class="fas fa-ticket-alt me-2"></i>Мої бронювання</h4>
                         </div>
                         <div class="card-body">
-                            {% if bookings %}
+                            {% if bookings and bookings|length > 0 %}
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle">
                                     <thead class="table-dark">
@@ -250,18 +261,19 @@
                 </div>
                 
                 <!-- Сповіщення -->
-                <div class="tab-pane fade" id="notifications">
+                <div class="tab-pane fade" id="v-pills-notifications" role="tabpanel" 
+                     aria-labelledby="v-pills-notifications-tab">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">Сповіщення</h4>
-                            {% if notifications %}
+                            <h4 class="mb-0"><i class="fas fa-bell me-2"></i>Сповіщення</h4>
+                            {% if notifications and notifications|length > 0 %}
                             <button class="btn btn-outline-secondary btn-sm" id="mark-all-read-btn">
                                 <i class="fas fa-check-double me-1"></i>Позначити все як прочитане
                             </button>
                             {% endif %}
                         </div>
                         <div class="card-body">
-                            {% if notifications %}
+                            {% if notifications and notifications|length > 0 %}
                             <div class="list-group" id="notifications-list">
                                 {% for notification in notifications %}
                                 <div class="list-group-item list-group-item-action {% if not notification.is_read %}bg-light{% endif %}" 
@@ -303,6 +315,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // 1. Профіль - редагування
     const editProfileBtn = document.getElementById('edit-profile-btn');
     const cancelEditBtn = document.getElementById('cancel-edit-btn');
     const saveProfileBtn = document.getElementById('save-profile-btn');
@@ -321,6 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveProfileBtn.addEventListener('click', updateProfile);
     }
     
+    // 2. Сповіщення
     const markAllReadBtn = document.getElementById('mark-all-read-btn');
     const markReadBtns = document.querySelectorAll('.mark-read-btn');
     
@@ -335,13 +349,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    const hash = window.location.hash;
-    if (hash) {
-        const tab = document.querySelector(`a[href="${hash}"]`);
-        if (tab) {
-            tab.click();
-        }
-    }
+    // 3. Просте перемикання табів (на випадок, якщо Bootstrap не працює)
+    const tabButtons = document.querySelectorAll('.nav-link[data-bs-toggle="pill"]');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Видаляємо активний клас з усіх кнопок
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
+            });
+            
+            // Додаємо активний клас до поточної кнопки
+            this.classList.add('active');
+            this.setAttribute('aria-selected', 'true');
+            
+            // Отримуємо ID цільового контенту
+            const targetId = this.getAttribute('data-bs-target');
+            
+            // Приховуємо весь контент
+            tabPanes.forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Показуємо вибраний контент
+            const targetPane = document.querySelector(targetId);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
+        });
+    });
 });
 
 function enableEdit() {
@@ -398,7 +436,6 @@ function updateProfile() {
             if (fullNameContainer) {
                 fullNameContainer.innerHTML = `<i class="fas fa-user-circle me-2"></i>${fullName}`;
             } else {
-                // Якщо контейнера ще немає (ім'я не було вказане раніше)
                 const fullNameValueDiv = document.querySelector('.mb-4:nth-child(2) .info-value');
                 if (fullNameValueDiv) {
                     fullNameValueDiv.innerHTML = `
@@ -431,15 +468,13 @@ function updateProfile() {
                 warningBadge.remove();
             }
             
-            // Повертаємось до режиму перегляду
-            cancelEdit();
-            
             // Оновлюємо ім'я в сайдбарі
             const sidebarName = document.querySelector('.profile-sidebar h5');
             if (sidebarName) {
                 sidebarName.textContent = fullName;
             }
             
+            cancelEdit();
             showAlert('Профіль успішно оновлено!', 'success');
         } else {
             showAlert('Помилка: ' + data.message, 'error');
@@ -464,7 +499,7 @@ function markAsRead(notificationId, buttonElement) {
                 notificationItem.classList.remove('bg-light');
             }
             
-            const badge = document.querySelector('a[href="#notifications"] .badge');
+            const badge = document.querySelector('#v-pills-notifications-tab .badge');
             if (badge) {
                 const count = parseInt(badge.textContent) - 1;
                 if (count > 0) {
@@ -488,7 +523,7 @@ function markAllAsRead() {
                 document.querySelectorAll('.mark-read-btn').forEach(btn => btn.remove());
                 document.querySelectorAll('.bg-light').forEach(el => el.classList.remove('bg-light'));
                 
-                const badge = document.querySelector('a[href="#notifications"] .badge');
+                const badge = document.querySelector('#v-pills-notifications-tab .badge');
                 if (badge) {
                     badge.remove();
                 }
